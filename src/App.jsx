@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState ,useEffect} from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -15,12 +15,29 @@ function App() {
   // State: which image is displayed + dark overlay toggle
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDark, setIsDark] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
+
 
   const current = images[currentIndex];
 
+  useEffect(() => {
+  const handleKey = (e) => {
+    if (e.key === "ArrowRight") {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    } else if (e.key === "ArrowLeft") {
+      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    } else if (e.key === "Escape") {
+      setLightbox(false);
+    }
+  };
+
+  window.addEventListener("keydown", handleKey);
+  return () => window.removeEventListener("keydown", handleKey);
+}, [images.length]);
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      <h1 className="text-2xl font-bold mb-6">Image Gallery (React)</h1>
+      <h1 className="text-2xl font-bold mb-6">Image Gallery</h1>
 
       {/* Main image area */}
       <div className="relative w-[720px] max-w-full rounded-xl overflow-hidden shadow-lg">
@@ -28,11 +45,14 @@ function App() {
           className="w-full h-[420px] object-cover block"
           src={current.src}
           alt={current.alt}
+          onClick={() => {
+          setLightbox(true);
+          }}
         />
 
         {/* Overlay */}
         <div
-          className={`absolute inset-0 transition-colors duration-300 ${
+          className={`absolute inset-0 transition-colors duration-300 pointer-events-none ${
             isDark ? "bg-black/50" : "bg-transparent"
           }`}
           aria-hidden="true"
@@ -68,6 +88,21 @@ function App() {
           );
         })}
       </div>
+        {lightbox && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+          <img
+            src={current.src}
+            alt={current.alt}
+            className="max-w-[90%] max-h-[90%] rounded-lg shadow-lg"
+          />
+          <button
+            onClick={() => setLightbox(false)}
+            className="absolute top-6 right-6 text-white text-3xl font-bold hover:text-red-400"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }
